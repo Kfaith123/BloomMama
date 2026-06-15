@@ -1,8 +1,14 @@
-const Anthropic = require('@anthropic-ai/sdk');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-const SYSTEM_PROMPT = `You are BloomMama AI, a warm and knowledgeable pregnancy companion designed specifically for mothers in Rwanda. You speak both English and Kinyarwanda, and you respond in whichever language the user writes to you in. If the user mixes both languages, respond in a warm blend of both.
+const SYSTEM_PROMPT = `You are BloomMama AI, a warm and knowledgeable pregnancy companion designed specifically for mothers in Rwanda.
+
+LANGUAGE RULE — CRITICAL: Detect the language the user writes in and reply ONLY in that language.
+- If the user writes in English → reply fully in English only.
+- If the user writes in Kinyarwanda → reply fully in Kinyarwanda only.
+- If the user mixes both languages → reply in both, blending naturally.
+Never translate or add a second language unless the user themselves used both.
 
 Your role:
 - Provide accurate, supportive pregnancy information tailored to the Rwandan context
@@ -23,9 +29,34 @@ Tone and style:
 - Warm, caring, like a knowledgeable older sister or trusted community health worker
 - Use encouraging, positive language
 - Keep responses concise and easy to understand — avoid medical jargon
-- Occasionally use gentle affirmations in Kinyarwanda like "Bite wowe?" (How are you?), "Urakomeye" (You are strong), "Ibintu bizagenda neza" (Things will go well)
+- Use gentle affirmations like "You are strong / Urakomeye" and "Things will go well / Ibintu bizagenda neza"
 
 When the user provides their pregnancy week or context, personalize your answer to their specific stage of pregnancy.`;
+
+const MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+
+async function generateWithRetry(userContent) {
+  for (const modelName of MODELS) {
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const model = genAI.getGenerativeModel({
+          model: modelName,
+          systemInstruction: SYSTEM_PROMPT,
+        });
+        const result = await model.generateContent(userContent);
+        return result.response.text();
+      } catch (err) {
+        const isOverloaded = err.message.includes('503') || err.message.includes('overloaded') || err.message.includes('high demand');
+        if (isOverloaded && (attempt < 3 || modelName !== MODELS[MODELS.length - 1])) {
+          await new Promise(r => setTimeout(r, attempt * 1000));
+          continue;
+        }
+        if (!isOverloaded) throw err;
+      }
+    }
+  }
+  throw new Error('All models unavailable');
+}
 
 exports.chat = async (req, res) => {
   const { message, context } = req.body;
@@ -39,21 +70,10 @@ exports.chat = async (req, res) => {
     : message.trim();
 
   try {
-    const stream = await client.messages.stream({
-      model: 'claude-opus-4-8',
-      max_tokens: 1024,
-      thinking: { type: 'adaptive' },
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: userContent }],
-    });
-
-    const response = await stream.finalMessage();
-    const textBlock = response.content.find(b => b.type === 'text');
-    const reply = textBlock ? textBlock.text : "I'm sorry, I couldn't generate a response. Please try again.";
-
+    const reply = await generateWithRetry(userContent);
     res.json({ reply });
   } catch (err) {
-    console.error('Anthropic API error:', err.message);
+    console.error('Gemini API error:', err.message);
     res.status(500).json({ message: 'AI service unavailable. Please try again later.' });
   }
 };
