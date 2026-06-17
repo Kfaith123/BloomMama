@@ -56,3 +56,43 @@ exports.getMe = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
+
+exports.updateMe = async (req, res) => {
+  const { name, phone, language } = req.body;
+  try {
+    await db.query(
+      'UPDATE users SET name = COALESCE(?, name), phone = COALESCE(?, phone), language = COALESCE(?, language) WHERE id = ?',
+      [name || null, phone || null, language || null, req.user.id]
+    );
+    const [rows] = await db.query(
+      'SELECT id, name, email, phone, language, created_at FROM users WHERE id = ?',
+      [req.user.id]
+    );
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+exports.changePassword = async (req, res) => {
+  const { current_password, new_password } = req.body;
+  if (!current_password || !new_password) {
+    return res.status(400).json({ message: 'Both current and new password are required' });
+  }
+  if (new_password.length < 6) {
+    return res.status(400).json({ message: 'New password must be at least 6 characters' });
+  }
+  try {
+    const [rows] = await db.query('SELECT password FROM users WHERE id = ?', [req.user.id]);
+    if (!rows.length) return res.status(404).json({ message: 'User not found' });
+
+    const valid = await bcrypt.compare(current_password, rows[0].password);
+    if (!valid) return res.status(401).json({ message: 'Current password is incorrect' });
+
+    const hashed = await bcrypt.hash(new_password, 12);
+    await db.query('UPDATE users SET password = ? WHERE id = ?', [hashed, req.user.id]);
+    res.json({ message: 'Password updated successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};

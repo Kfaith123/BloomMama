@@ -8,7 +8,9 @@ const quickLinks = [
   { to: '/health',    icon: '❤️', label: 'Health Log',    color: 'bg-red-50 border-red-200' },
   { to: '/kicks',     icon: '🦵', label: 'Kick Counter',  color: 'bg-orange-50 border-orange-200' },
   { to: '/reminders', icon: '🔔', label: 'Reminders',     color: 'bg-yellow-50 border-yellow-200' },
+  { to: '/nutrition', icon: '🥗', label: 'Nutrition',     color: 'bg-green-50 border-green-200' },
   { to: '/chat',      icon: '💬', label: 'Ask AI',        color: 'bg-purple-50 border-purple-200' },
+  { to: '/profile',   icon: '👤', label: 'My Profile',    color: 'bg-blue-50 border-blue-200' },
 ];
 
 export default function Dashboard() {

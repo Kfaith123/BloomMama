@@ -9,6 +9,8 @@ import HealthLog    from './pages/HealthLog';
 import KickCounter  from './pages/KickCounter';
 import Reminders    from './pages/Reminders';
 import AIChat       from './pages/AIChat';
+import Nutrition    from './pages/Nutrition';
+import Profile      from './pages/Profile';
 
 function Protected({ children }) {
   const { user, loading } = useAuth();
@@ -28,9 +30,11 @@ function AppRoutes() {
         <Route path="/weekly"   element={<Protected><WeeklyGuide /></Protected>} />
         <Route path="/health"   element={<Protected><HealthLog /></Protected>} />
         <Route path="/kicks"    element={<Protected><KickCounter /></Protected>} />
-        <Route path="/reminders" element={<Protected><Reminders /></Protected>} />
-        <Route path="/chat"     element={<Protected><AIChat /></Protected>} />
-        <Route path="*"         element={<Navigate to="/" />} />
+        <Route path="/reminders"  element={<Protected><Reminders /></Protected>} />
+        <Route path="/chat"       element={<Protected><AIChat /></Protected>} />
+        <Route path="/nutrition"  element={<Protected><Nutrition /></Protected>} />
+        <Route path="/profile"    element={<Protected><Profile /></Protected>} />
+        <Route path="*"           element={<Navigate to="/" />} />
       </Routes>
     </>
   );

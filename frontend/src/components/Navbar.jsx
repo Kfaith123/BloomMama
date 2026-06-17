@@ -1,13 +1,22 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const links = [
-  { to: '/',          label: '🏠 Home' },
-  { to: '/weekly',    label: '👶 Weekly' },
-  { to: '/health',    label: '❤️ Health' },
-  { to: '/kicks',     label: '🦵 Kicks' },
-  { to: '/reminders', label: '🔔 Reminders' },
-  { to: '/chat',      label: '💬 AI Chat' },
+const desktopLinks = [
+  { to: '/',           label: '🏠 Home' },
+  { to: '/weekly',     label: '👶 Weekly' },
+  { to: '/health',     label: '❤️ Health' },
+  { to: '/kicks',      label: '🦵 Kicks' },
+  { to: '/reminders',  label: '🔔 Reminders' },
+  { to: '/nutrition',  label: '🥗 Nutrition' },
+  { to: '/chat',       label: '💬 AI Chat' },
+];
+
+const mobileLinks = [
+  { to: '/',           label: '🏠 Home' },
+  { to: '/weekly',     label: '👶 Weekly' },
+  { to: '/health',     label: '❤️ Health' },
+  { to: '/kicks',      label: '🦵 Kicks' },
+  { to: '/chat',       label: '💬 Chat' },
 ];
 
 export default function Navbar() {
@@ -23,7 +32,7 @@ export default function Navbar() {
           🌸 BloomMama
         </Link>
         <div className="hidden md:flex items-center gap-1">
-          {links.map(l => (
+          {desktopLinks.map(l => (
             <Link
               key={l.to}
               to={l.to}
@@ -36,13 +45,22 @@ export default function Navbar() {
             </Link>
           ))}
         </div>
-        <button onClick={logout} className="text-sm text-gray-400 hover:text-bloom-rose transition-colors">
-          Logout
-        </button>
+        <div className="flex items-center gap-3">
+          <Link
+            to="/profile"
+            className={`text-sm font-medium transition-colors hidden md:block
+              ${pathname === '/profile' ? 'text-bloom-rose' : 'text-gray-400 hover:text-bloom-rose'}`}
+          >
+            👤 Profile
+          </Link>
+          <button onClick={logout} className="text-sm text-gray-400 hover:text-bloom-rose transition-colors">
+            Logout
+          </button>
+        </div>
       </div>
-      {/* Mobile bottom nav */}
+      {/* Mobile bottom nav — 5 core items */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-pink-100 flex justify-around py-2 z-50">
-        {links.map(l => (
+        {mobileLinks.map(l => (
           <Link
             key={l.to}
             to={l.to}
