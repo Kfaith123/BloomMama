@@ -1,6 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+
+const mdComponents = {
+  p:      ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+  strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+  em:     ({ children }) => <em className="italic">{children}</em>,
+  ul:     ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-0.5">{children}</ul>,
+  ol:     ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-0.5">{children}</ol>,
+  li:     ({ children }) => <li className="leading-snug">{children}</li>,
+  a:      ({ children }) => <span className="underline">{children}</span>,
+};
 
 const EMERGENCY_WORDS = ['bleeding', 'severe pain', 'no movement', 'fainted', 'unconscious'];
 
@@ -149,13 +160,15 @@ export default function AIChat() {
                   🌸
                 </div>
               )}
-              <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap
+              <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed
                 ${m.role === 'user'
-                  ? 'bg-bloom-rose text-white rounded-tr-none'
+                  ? 'bg-bloom-rose text-white rounded-tr-none whitespace-pre-wrap'
                   : m.emergency
-                    ? 'bg-red-50 border border-red-200 text-red-800 rounded-tl-none'
+                    ? 'bg-red-50 border border-red-200 text-red-800 rounded-tl-none whitespace-pre-wrap'
                     : 'bg-white border border-pink-100 text-gray-700 rounded-tl-none shadow-sm'}`}>
-                {m.text}
+                {m.role === 'assistant' && !m.emergency
+                  ? <ReactMarkdown components={mdComponents}>{m.text}</ReactMarkdown>
+                  : m.text}
               </div>
             </div>
           ))
